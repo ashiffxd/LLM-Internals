@@ -21,118 +21,82 @@ We're continuing to build the Transformer:
 
 ## What is Layer Normalization?
 
-**Layer Normalization** = Keeping all numbers in a similar range so the model stays stable
+**Layer Normalization** = Keeping numbers balanced so everything works smoothly
 
-When numbers become too large or too small, the model stops learning properly. Layer Normalization fixes this problem.
+Think of it like balancing the volume on different speakers - you want them all at a similar level.
 
 ## The Problem
 
-In neural networks, numbers can grow out of control:
+Numbers can get out of control:
 
 **Without Layer Normalization:**
-- Some numbers become huge: 1000, 5000, 10000
-- Some numbers become tiny: 0.001, 0.0001
-- The model becomes unstable and breaks
+\`\`\`plaintext
+Layer 1: 5, 10, 15
+Layer 2: 50, 100, 150 (getting bigger!)
+Layer 3: 500, 1000, 1500 (too big!)
+→ System breaks!
+\`\`\`
 
 **With Layer Normalization:**
-- All numbers stay in a similar range
-- The model stays stable
-- Training works smoothly
+\`\`\`plaintext
+Layer 1: 5, 10, 15 → Balanced to -1, 0, 1
+Layer 2: 50, 100, 150 → Balanced to -1, 0, 1
+Layer 3: 500, 1000, 1500 → Balanced to -1, 0, 1
+→ Always stable!
+\`\`\`
 
-## Why Do We Need This?
+## Why Is This Important?
 
-After attention and feed-forward operations, the numbers can grow or shrink dramatically:
+After each step in the Transformer, numbers can become very different:
 
-**Example:**
-- Word "the": outputs [2, 5, 8]
-- Word "cat": outputs [1000, 2500, 4000]
-- Word "sat": outputs [0.1, 0.2, 0.3]
+\`\`\`plaintext
+Word "the" → numbers: 2, 5, 8
+Word "cat" → numbers: 1000, 2500, 4000 (way too big!)
+Word "sat" → numbers: 0.1, 0.2, 0.3 (too small!)
+\`\`\`
 
-These numbers are very different in scale. This causes problems:
-- Some values dominate others
-- Training becomes unstable
-- The model learns slowly or not at all
-
-**Layer Normalization fixes this** by adjusting all values to a similar scale.
+This is a problem! Layer Normalization makes them all similar.
 
 ## How Does It Work?
 
-Layer Normalization follows these steps:
+Two simple steps:
 
-### Step 1: Calculate the Mean (Average)
+### Step 1: Find the Average
 
-Find the average of all values in the layer
-
-\`\`\`
-Values: [10, 20, 30, 40]
-Mean = (10 + 20 + 30 + 40) / 4 = 25
+\`\`\`plaintext
+Numbers: 10, 20, 30, 40
+Average = 25
 \`\`\`
 
-### Step 2: Calculate Standard Deviation
+### Step 2: Adjust Based on Average
 
-Measure how spread out the values are from the mean
+Make all numbers closer to the average:
 
-\`\`\`
-Standard deviation ≈ 11.2 (measures the spread)
-\`\`\`
-
-### Step 3: Normalize
-
-Subtract the mean and divide by standard deviation
-
-\`\`\`
-Normalized = (value - mean) / std_dev
-
-10 → (10 - 25) / 11.2 = -1.34
-20 → (20 - 25) / 11.2 = -0.45
-30 → (30 - 25) / 11.2 = 0.45
-40 → (40 - 25) / 11.2 = 1.34
+\`\`\`plaintext
+Original: 10, 20, 30, 40
+After:    -1,  0,  1,  2
 \`\`\`
 
-Now all values are in a similar range around 0!
+All numbers are now in a similar range!
 
 ## Visual Diagram
 
 \`\`\`mermaid
 flowchart LR
-    Input["Input Values<br/>[10, 20, 30, 40]"]
-    Mean["Calculate Mean<br/>mean = 25"]
-    Std["Calculate Std Dev<br/>std = 11.2"]
-    Norm["Normalize<br/>(x - mean) / std"]
-    Output["Output<br/>[-1.34, -0.45, 0.45, 1.34]"]
+    Input["Numbers<br/>10, 20, 30, 40"]
+    Step1["Find Average<br/>25"]
+    Step2["Balance Numbers"]
+    Output["Result<br/>-1, 0, 1, 2"]
 
-    Input --> Mean
-    Input --> Std
-    Mean --> Norm
-    Std --> Norm
-    Norm --> Output
+    Input --> Step1
+    Step1 --> Step2
+    Step2 --> Output
 
     style Input fill:#3b82f6,color:#fff
-    style Norm fill:#f59e0b,color:#fff
+    style Step2 fill:#f59e0b,color:#fff
     style Output fill:#22c55e,color:#fff
 \`\`\`
 
-## Why Is This Important?
-
-**Without Layer Normalization:**
-\`\`\`
-After Step 1: Numbers = 2, 5, 8
-After Step 2: Numbers = 20, 50, 80 (getting bigger!)
-After Step 3: Numbers = 200, 500, 800 (too big!)
-After Step 4: Numbers = 2000, 5000, 8000 (EXPLODED!)
-
-Result: Everything breaks!
-\`\`\`
-
-**With Layer Normalization:**
-\`\`\`
-After Step 1: Numbers = 2, 5, 8 → Normalized to -1, 0, 1
-After Step 2: Numbers = 20, 50, 80 → Normalized to -1, 0, 1
-After Step 3: Numbers = 200, 500, 800 → Normalized to -1, 0, 1
-After Step 4: Numbers = 2000, 5000, 8000 → Normalized to -1, 0, 1
-
-Result: Always stable!
-\`\`\`
 
 ## Where Is It Used in Transformers?
 
@@ -167,73 +131,54 @@ After feed-forward → Normalize
 
 This keeps everything stable!
 
-## Code Example
+## Simple Code
 
 \`\`\`python|javascript
-# Layer Normalization (simplified)
-def layer_normalization(values):
-    # Step 1: Calculate mean
-    mean = sum(values) / len(values)
+# Layer Normalization
+def layer_norm(numbers):
+    # Find average
+    avg = sum(numbers) / len(numbers)
 
-    # Step 2: Calculate standard deviation
-    variance = sum((x - mean) ** 2 for x in values) / len(values)
-    std_dev = variance ** 0.5
+    # Balance the numbers
+    balanced = [num - avg for num in numbers]
 
-    # Step 3: Normalize
-    normalized = [(x - mean) / (std_dev + 1e-5) for x in values]
-
-    return normalized
+    return balanced
 
 # Example
-values = [10, 20, 30, 40]
-result = layer_normalization(values)
-# Result: [-1.34, -0.45, 0.45, 1.34]
+numbers = [10, 20, 30, 40]
+result = layer_norm(numbers)
+# Result: [-15, -5, 5, 15] (balanced!)
 |||
-// Layer Normalization (simplified)
-function layerNormalization(values) {
-    // Step 1: Calculate mean
-    const mean = values.reduce((a, b) => a + b) / values.length;
+// Layer Normalization
+function layerNorm(numbers) {
+    // Find average
+    const avg = numbers.reduce((a, b) => a + b) / numbers.length;
 
-    // Step 2: Calculate standard deviation
-    const variance = values.reduce((sum, x) => sum + (x - mean) ** 2, 0) / values.length;
-    const stdDev = Math.sqrt(variance);
+    // Balance the numbers
+    const balanced = numbers.map(num => num - avg);
 
-    // Step 3: Normalize
-    const normalized = values.map(x => (x - mean) / (stdDev + 1e-5));
-
-    return normalized;
+    return balanced;
 }
 
 // Example
-const values = [10, 20, 30, 40];
-const result = layerNormalization(values);
-// Result: [-1.34, -0.45, 0.45, 1.34]
+const numbers = [10, 20, 30, 40];
+const result = layerNorm(numbers);
+// Result: [-15, -5, 5, 15] (balanced!)
 \`\`\`
 
-## Applied to Each Position
+## Each Word Gets Balanced
 
-Layer Normalization is applied independently to each token:
+Every word in the sentence is balanced separately:
 
-\`\`\`
+\`\`\`plaintext
 Sentence: "The cat sat"
 
-Position 0 "The": [512 values] → Normalize → [512 normalized values]
-Position 1 "cat": [512 values] → Normalize → [512 normalized values]
-Position 2 "sat": [512 values] → Normalize → [512 normalized values]
+"The" → has 512 numbers → Balance them
+"cat" → has 512 numbers → Balance them
+"sat" → has 512 numbers → Balance them
 \`\`\`
 
-**What does [512 values] mean?**
-
-Each word is represented by a **vector** (a list of numbers). In transformers, this vector typically has 512 numbers.
-
-\`\`\`
-Example:
-Word "cat" = [0.5, -0.2, 1.3, 0.8, ... 512 numbers total]
-           ↑
-         This is a vector (array of numbers)
-\`\`\`
-
-Layer Normalization takes these 512 numbers, calculates their mean and standard deviation, and normalizes all 512 values.
+**Note:** Each word is represented by 512 numbers (a vector). Layer Normalization balances all 512 numbers for each word.
 
 ## Putting It All Together
 
@@ -265,16 +210,15 @@ flowchart TD
 
 ## Summary
 
-> **Layer Normalization** = Standardizing values to prevent instability during training
+> **Layer Normalization** = Balancing numbers so they stay in a similar range
 
-**Key Points:**
-1. Prevents values from becoming too large or too small
-2. Calculates mean and standard deviation
-3. Normalizes values to have mean=0 and std=1
-4. Applied after each major operation (attention, feed-forward)
-5. Makes training stable and faster
+**Remember:**
+1. Numbers can get too big or too small
+2. Layer Normalization keeps them balanced
+3. Applied after attention and feed-forward
+4. Makes the Transformer stable
 
-**Result:** The model learns more efficiently and reliably.
+**Simple idea:** Keep all numbers similar so nothing breaks!
 
 ## Connection to Previous Topics
 
