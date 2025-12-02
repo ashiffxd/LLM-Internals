@@ -16,6 +16,18 @@ import { residualConnections } from './residual-connections';
 import { attentionComplexity } from './attention-complexity';
 import { causalMasking } from './causal-masking';
 import { multiQueryAttention } from './multi-query-attention';
+import { rope } from './rope';
+import { alibi } from './alibi';
+import { kvCache } from './kv-cache';
+import { pagedAttention } from './paged-attention';
+import { memoryImplications } from './memory-implications';
+import { contextWindow } from './context-window';
+import { contextDecay } from './context-decay';
+import { needleHaystack } from './needle-haystack';
+import { reasoningPatterns } from './reasoning-patterns';
+import { hallucinations } from './hallucinations';
+import { promptContext } from './prompt-context';
+import { instructionCompletion } from './instruction-completion';
 import { basicConcepts } from './basic-concepts';
 import { advancedTopics } from './advanced-topics';
 import { codeExamples } from './code-examples';
@@ -40,6 +52,18 @@ const articles: Record<string, Article> = {
   'attention-complexity': attentionComplexity,
   'causal-masking': causalMasking,
   'multi-query-attention': multiQueryAttention,
+  'rope': rope,
+  'alibi': alibi,
+  'kv-cache': kvCache,
+  'paged-attention': pagedAttention,
+  'memory-implications': memoryImplications,
+  'context-window': contextWindow,
+  'context-decay': contextDecay,
+  'needle-haystack': needleHaystack,
+  'reasoning-patterns': reasoningPatterns,
+  'hallucinations': hallucinations,
+  'prompt-context': promptContext,
+  'instruction-completion': instructionCompletion,
   'basic-concepts': basicConcepts,
   'advanced-topics': advancedTopics,
   'code-examples': codeExamples,
